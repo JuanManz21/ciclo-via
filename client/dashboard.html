@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ciclo Vía - Panel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">Ciclo Vía</div>
+    <div class="nav-user">
+      <span id="navUserName"></span>
+      <span id="navUserRole" class="badge"></span>
+      <button class="btn btn-sm btn-outline" id="logoutBtn">Salir</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- PANEL ADMIN -->
+    <div id="adminPanel" style="display:none;">
+      <div class="section-header">
+        <h2>Gestión de Alfabetizadores</h2>
+        <button class="btn btn-primary" id="btnNewStudent">+ Nuevo Estudiante</button>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Buscar por documento o nombre...">
+      </div>
+
+      <div class="table-responsive">
+        <table class="table" id="studentsTable">
+          <thead>
+            <tr>
+              <th>Documento</th>
+              <th>Nombre</th>
+              <th>Horas Completadas</th>
+              <th>Horas Faltantes</th>
+              <th>Progreso</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="studentsBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="noStudents" class="empty-state" style="display:none;">
+        No hay estudiantes registrados
+      </div>
+    </div>
+
+    <!-- PANEL ALFABETIZADOR -->
+    <div id="studentPanel" style="display:none;">
+      <div class="progress-card">
+        <h2>Mi Progreso</h2>
+        <div class="progress-info">
+          <div class="progress-stat">
+            <span class="stat-label">Horas Completadas</span>
+            <span class="stat-value" id="hoursCompleted">0</span>
+          </div>
+          <div class="progress-stat">
+            <span class="stat-label">Horas Totales</span>
+            <span class="stat-value" id="hoursTotal">0</span>
+          </div>
+          <div class="progress-stat highlight">
+            <span class="stat-label">Horas Faltantes</span>
+            <span class="stat-value" id="hoursRemaining">0</span>
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+          <span class="progress-text" id="progressPercent">0%</span>
+        </div>
+
+        <div class="status-badge" id="statusBadge"></div>
+
+        <div class="last-update">
+          Última actualización: <span id="lastUpdate">-</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: Crear/Editar Estudiante -->
+  <div class="modal" id="studentModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nuevo Estudiante</h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <form id="studentForm">
+        <input type="hidden" id="studentId">
+        <div class="form-group">
+          <label for="studentDoc">Documento</label>
+          <input type="text" id="studentDoc" placeholder="Número de documento" required>
+        </div>
+        <div class="form-group">
+          <label for="studentName">Nombre Completo</label>
+          <input type="text" id="studentName" placeholder="Nombre del estudiante" required>
+        </div>
+        <div class="form-group">
+          <label for="studentPass">Contraseña</label>
+          <input type="password" id="studentPass" placeholder="Contraseña (mínimo 4 caracteres)">
+        </div>
+        <div class="form-group">
+          <label for="studentHours">Horas Totales del Programa</label>
+          <input type="number" id="studentHours" value="480" min="1" step="1">
+        </div>
+        <div id="formError" class="error-message" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="modalCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="modalSave">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Actualizar Horas -->
+  <div class="modal" id="hoursModal" style="display:none;">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Actualizar Horas</h3>
+        <button class="modal-close" id="hoursModalClose">&times;</button>
+      </div>
+      <form id="hoursForm">
+        <input type="hidden" id="hoursStudentId">
+        <p class="modal-info">Estudiante: <strong id="hoursStudentName"></strong></p>
+        <p class="modal-info">Horas totales: <span id="hoursStudentTotal"></span></p>
+        <p class="modal-info">Horas actuales: <strong id="hoursCurrent"></strong></p>
+        <div class="form-group">
+          <label for="hoursToAdd">Horas a agregar</label>
+          <input type="number" id="hoursToAdd" min="1" step="1" required placeholder="¿Cuántas horas vas a registrar?">
+        </div>
+        <div id="hoursError" class="error-message" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="hoursCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Agregar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirmar Eliminación -->
+  <div class="modal" id="deleteModal" style="display:none;">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Confirmar Eliminación</h3>
+        <button class="modal-close" id="deleteModalClose">&times;</button>
+      </div>
+      <p>¿Estás seguro de eliminar al estudiante <strong id="deleteStudentName"></strong>?</p>
+      <p class="text-muted">Esta acción no se puede deshacer.</p>
+      <input type="hidden" id="deleteStudentId">
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="deleteCancel">Cancelar</button>
+        <button class="btn btn-danger" id="deleteConfirm">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
