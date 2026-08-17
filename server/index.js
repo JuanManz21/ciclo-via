@@ -13,21 +13,7 @@ function runSeed() {
   if (!existing) {
     const hashed = bcrypt.hashSync('admin123', 10);
     prepare('INSERT INTO users (documento, nombre, password, role, institucion, horas_completadas, horas_totales) VALUES (?, ?, ?, ?, ?, ?, ?)').run(adminDoc, 'Administrador', hashed, 'admin', 'Sistema', 0, 0);
-
-    const hashPass = bcrypt.hashSync('1234', 10);
-    const students = [
-      { doc: '1234567890', nombre: 'María García López', horas: 120, inst: 'I.E. San Martín' },
-      { doc: '1098765432', nombre: 'Carlos Rodríguez Pérez', horas: 350, inst: 'I.E. San Martín' },
-      { doc: '1122334455', nombre: 'Ana Martínez Sánchez', horas: 480, inst: 'I.E. La Esperanza' },
-    ];
-    for (const s of students) {
-      prepare('INSERT OR IGNORE INTO users (documento, nombre, password, role, institucion, horas_completadas, horas_totales) VALUES (?, ?, ?, ?, ?, ?, ?)').run(s.doc, s.nombre, hashPass, 'student', s.inst, s.horas, 480);
-    }
-
-    const coordHash = bcrypt.hashSync('coord123', 10);
-    prepare('INSERT OR IGNORE INTO users (documento, nombre, password, role, institucion, horas_completadas, horas_totales) VALUES (?, ?, ?, ?, ?, ?, ?)').run('9999999', 'Coordinador San Martín', coordHash, 'coordinator', 'I.E. San Martín', 0, 0);
-
-    console.log('Seed ejecutado.');
+    console.log('Admin creado: 0000000 / admin123');
   }
 }
 
