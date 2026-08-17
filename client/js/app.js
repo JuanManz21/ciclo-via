@@ -205,10 +205,7 @@ function renderStudentsCoord(students) {
       <td>${s.documento}</td><td>${s.nombre}</td>
       <td>${s.horas_completadas}h</td><td>${f}h</td>
       <td><div class="progress-bar" style="height:8px;min-width:80px;"><div class="progress-fill" style="width:${p}%"></div></div><span style="font-size:12px;">${p}%</span></td>
-      <td class="actions">
-        <button class="btn btn-sm btn-primary" onclick="openHoursModal(${s.id},'${esc(s.nombre)}',${s.horas_completadas},${s.horas_totales})">Horas</button>
-        <button class="btn btn-sm btn-outline" onclick="openEditModal(${s.id},'${esc(s.documento)}','${esc(s.nombre)}','${esc(s.institucion||'')}',${s.horas_totales})">Editar</button>
-      </td></tr>`;
+    </tr>`;
   }).join('');
 }
 
@@ -252,10 +249,8 @@ function setupModals() {
   });
 
   document.getElementById('btnNewStudent')?.addEventListener('click', () => openStudentModal());
-  document.getElementById('btnNewStudentCoord')?.addEventListener('click', () => openStudentModal());
   document.getElementById('btnNewCoordinator')?.addEventListener('click', () => openCoordModal());
   document.getElementById('btnNewAttendance')?.addEventListener('click', () => openAttendanceModal());
-  document.getElementById('btnNewAttendanceCoord')?.addEventListener('click', () => openAttendanceModal());
   document.getElementById('modalCancel')?.addEventListener('click', () => document.getElementById('studentModal').style.display = 'none');
   document.getElementById('coordCancel')?.addEventListener('click', () => document.getElementById('coordModal').style.display = 'none');
   document.getElementById('hoursCancel')?.addEventListener('click', () => document.getElementById('hoursModal').style.display = 'none');

@@ -170,7 +170,7 @@ router.put('/:id', requireRole('admin'), [
   res.json({ message: 'Estudiante actualizado', student: updated });
 });
 
-router.put('/:id/horas', [
+router.put('/:id/horas', requireRole('admin'), [
   param('id').isInt(),
   body('horas_completadas').isNumeric().withMessage('Las horas completadas deben ser numéricas')
 ], (req, res) => {
@@ -182,10 +182,6 @@ router.put('/:id/horas', [
   const student = db.prepare('SELECT * FROM users WHERE id = ? AND role = ?').get(Number(req.params.id), 'student');
   if (!student) {
     return res.status(404).json({ error: 'Estudiante no encontrado' });
-  }
-
-  if (req.user.role === 'coordinator' && student.institucion !== req.user.institucion) {
-    return res.status(403).json({ error: 'No tienes acceso a este estudiante' });
   }
 
   const { horas_completadas } = req.body;

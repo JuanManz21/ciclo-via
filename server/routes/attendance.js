@@ -43,7 +43,7 @@ router.get('/', (req, res) => {
   res.json(records);
 });
 
-router.post('/', [
+router.post('/', requireRole('admin'), [
   body('estudiante_id').isInt().withMessage('ID de estudiante requerido'),
   body('fecha').notEmpty().withMessage('La fecha es requerida'),
   body('horas').isNumeric().withMessage('Las horas deben ser numéricas'),
@@ -59,10 +59,6 @@ router.post('/', [
   const student = db.prepare('SELECT * FROM users WHERE id = ? AND role = ?').get(Number(estudiante_id), 'student');
   if (!student) {
     return res.status(404).json({ error: 'Estudiante no encontrado' });
-  }
-
-  if (req.user.role === 'coordinator' && student.institucion !== req.user.institucion) {
-    return res.status(403).json({ error: 'No tienes acceso a este estudiante' });
   }
 
   if (!Number.isInteger(horas) || horas <= 0) {
@@ -93,7 +89,7 @@ router.post('/', [
   });
 });
 
-router.delete('/:id', [
+router.delete('/:id', requireRole('admin'), [
   param('id').isInt()
 ], (req, res) => {
   const record = db.prepare(`
@@ -104,13 +100,6 @@ router.delete('/:id', [
 
   if (!record) {
     return res.status(404).json({ error: 'Registro de asistencia no encontrado' });
-  }
-
-  if (req.user.role === 'coordinator') {
-    const student = db.prepare('SELECT institucion FROM users WHERE id = ?').get(record.estudiante_id);
-    if (student.institucion !== req.user.institucion) {
-      return res.status(403).json({ error: 'No tienes acceso a este registro' });
-    }
   }
 
   const newHoras = Math.max(0, record.horas_completadas - record.horas);
