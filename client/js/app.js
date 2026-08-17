@@ -264,8 +264,27 @@ function setupModals() {
   document.getElementById('attendanceForm')?.addEventListener('submit', handleAttendanceSubmit);
   document.getElementById('deleteConfirm')?.addEventListener('click', handleDelete);
 
-  document.getElementById('btnDownloadCert')?.addEventListener('click', () => {
-    window.location.href = '/api/certificate';
+  document.getElementById('btnDownloadCert')?.addEventListener('click', async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await fetch('/api/certificate', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!resp.ok) {
+        const err = await resp.json();
+        alert(err.error || 'Error al generar certificado');
+        return;
+      }
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificado_${currentUser.documento}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Error al descargar certificado');
+    }
   });
 
   document.getElementById('filterDateStart')?.addEventListener('change', () => {});
