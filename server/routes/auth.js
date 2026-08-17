@@ -32,7 +32,7 @@ router.post('/login', [
   }
 
   const token = jwt.sign(
-    { id: user.id, documento: user.documento, nombre: user.nombre, role: user.role },
+    { id: user.id, documento: user.documento, nombre: user.nombre, role: user.role, institucion: user.institucion },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
@@ -44,6 +44,7 @@ router.post('/login', [
       documento: user.documento,
       nombre: user.nombre,
       role: user.role,
+      institucion: user.institucion,
       horas_completadas: user.horas_completadas,
       horas_totales: user.horas_totales
     }
@@ -53,6 +54,7 @@ router.post('/login', [
 router.post('/register', authenticate, requireRole('admin'), [
   body('documento').notEmpty().withMessage('El documento es requerido'),
   body('nombre').notEmpty().withMessage('El nombre es requerido'),
+  body('institucion').notEmpty().withMessage('La institución es requerida'),
   body('password').isLength({ min: 4 }).withMessage('La contraseña debe tener al menos 4 caracteres')
 ], (req, res) => {
   const errors = validationResult(req);
@@ -60,7 +62,7 @@ router.post('/register', authenticate, requireRole('admin'), [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { documento, nombre, password, horas_totales } = req.body;
+  const { documento, nombre, password, horas_totales, institucion } = req.body;
 
   const existing = db.prepare('SELECT id FROM users WHERE documento = ?').get(documento);
   if (existing) {
@@ -71,8 +73,8 @@ router.post('/register', authenticate, requireRole('admin'), [
   const horas = horas_totales || 480;
 
   const result = db.prepare(
-    'INSERT INTO users (documento, nombre, password, role, horas_totales) VALUES (?, ?, ?, ?, ?)'
-  ).run(documento, nombre, hashedPassword, 'student', horas);
+    'INSERT INTO users (documento, nombre, password, role, institucion, horas_totales) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(documento, nombre, hashedPassword, 'student', institucion, horas);
 
   res.status(201).json({
     message: 'Estudiante registrado exitosamente',
@@ -81,6 +83,7 @@ router.post('/register', authenticate, requireRole('admin'), [
       documento,
       nombre,
       role: 'student',
+      institucion,
       horas_completadas: 0,
       horas_totales: horas
     }

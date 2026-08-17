@@ -12,44 +12,156 @@
     <div class="nav-user">
       <span id="navUserName"></span>
       <span id="navUserRole" class="badge"></span>
+      <span id="navUserInst" class="text-muted"></span>
       <button class="btn btn-sm btn-outline" id="logoutBtn">Salir</button>
     </div>
   </nav>
 
   <main class="container">
-    <!-- PANEL ADMIN -->
+
+    <!-- ===== PANEL ADMIN ===== -->
     <div id="adminPanel" style="display:none;">
-      <div class="section-header">
-        <h2>Gestión de Alfabetizadores</h2>
-        <button class="btn btn-primary" id="btnNewStudent">+ Nuevo Estudiante</button>
+      <div class="tabs">
+        <button class="tab active" data-tab="students">Estudiantes</button>
+        <button class="tab" data-tab="coordinators">Coordinadores</button>
+        <button class="tab" data-tab="attendance">Asistencia</button>
       </div>
 
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Buscar por documento o nombre...">
+      <div id="tab-students" class="tab-content active">
+        <div class="section-header">
+          <h2>Estudiantes</h2>
+          <button class="btn btn-primary" id="btnNewStudent">+ Nuevo Estudiante</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Buscar por documento, nombre o institución...">
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Nombre</th>
+                <th>Institución</th>
+                <th>Horas</th>
+                <th>Faltantes</th>
+                <th>Progreso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+        <div id="noStudents" class="empty-state" style="display:none;">No hay estudiantes registrados</div>
       </div>
 
-      <div class="table-responsive">
-        <table class="table" id="studentsTable">
-          <thead>
-            <tr>
-              <th>Documento</th>
-              <th>Nombre</th>
-              <th>Horas Completadas</th>
-              <th>Horas Faltantes</th>
-              <th>Progreso</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="studentsBody">
-          </tbody>
-        </table>
+      <div id="tab-coordinators" class="tab-content" style="display:none;">
+        <div class="section-header">
+          <h2>Coordinadores</h2>
+          <button class="btn btn-primary" id="btnNewCoordinator">+ Nuevo Coordinador</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Nombre</th>
+                <th>Institución</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="coordinatorsBody"></tbody>
+          </table>
+        </div>
+        <div id="noCoordinators" class="empty-state" style="display:none;">No hay coordinadores registrados</div>
       </div>
-      <div id="noStudents" class="empty-state" style="display:none;">
-        No hay estudiantes registrados
+
+      <div id="tab-attendance" class="tab-content" style="display:none;">
+        <div class="section-header">
+          <h2>Registro de Asistencia</h2>
+          <button class="btn btn-primary" id="btnNewAttendance">+ Registrar Asistencia</button>
+        </div>
+        <div class="search-bar">
+          <input type="date" id="filterDateStart" placeholder="Fecha inicio">
+          <input type="date" id="filterDateEnd" placeholder="Fecha fin" style="margin-left:8px;">
+          <button class="btn btn-sm btn-outline" id="btnFilterAttendance" style="margin-left:8px;">Filtrar</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Estudiante</th>
+                <th>Documento</th>
+                <th>Institución</th>
+                <th>Horas</th>
+                <th>Observación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceBody"></tbody>
+          </table>
+        </div>
+        <div id="noAttendance" class="empty-state" style="display:none;">No hay registros de asistencia</div>
       </div>
     </div>
 
-    <!-- PANEL ALFABETIZADOR -->
+    <!-- ===== PANEL COORDINADOR ===== -->
+    <div id="coordinatorPanel" style="display:none;">
+      <div class="tabs">
+        <button class="tab active" data-tab="c-students">Estudiantes</button>
+        <button class="tab" data-tab="c-attendance">Asistencia</button>
+      </div>
+
+      <div id="tab-c-students" class="tab-content active">
+        <div class="section-header">
+          <h2>Estudiantes de mi Institución</h2>
+          <button class="btn btn-primary" id="btnNewStudentCoord">+ Nuevo Estudiante</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="searchInputCoord" placeholder="Buscar por documento o nombre...">
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Documento</th>
+                <th>Nombre</th>
+                <th>Horas</th>
+                <th>Faltantes</th>
+                <th>Progreso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBodyCoord"></tbody>
+          </table>
+        </div>
+        <div id="noStudentsCoord" class="empty-state" style="display:none;">No hay estudiantes en tu institución</div>
+      </div>
+
+      <div id="tab-c-attendance" class="tab-content" style="display:none;">
+        <div class="section-header">
+          <h2>Asistencia</h2>
+          <button class="btn btn-primary" id="btnNewAttendanceCoord">+ Registrar Asistencia</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Estudiante</th>
+                <th>Documento</th>
+                <th>Horas</th>
+                <th>Observación</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceBodyCoord"></tbody>
+          </table>
+        </div>
+        <div id="noAttendanceCoord" class="empty-state" style="display:none;">No hay registros</div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL ALFABETIZADOR ===== -->
     <div id="studentPanel" style="display:none;">
       <div class="progress-card">
         <h2>Mi Progreso</h2>
@@ -67,24 +179,27 @@
             <span class="stat-value" id="hoursRemaining">0</span>
           </div>
         </div>
-
         <div class="progress-bar-container">
           <div class="progress-bar">
             <div class="progress-fill" id="progressFill" style="width: 0%"></div>
           </div>
           <span class="progress-text" id="progressPercent">0%</span>
         </div>
-
         <div class="status-badge" id="statusBadge"></div>
+        <div class="last-update">Última actualización: <span id="lastUpdate">-</span></div>
+      </div>
 
-        <div class="last-update">
-          Última actualización: <span id="lastUpdate">-</span>
+      <div id="certificateSection" style="display:none; margin-top:20px;">
+        <div class="progress-card" style="text-align:center;">
+          <h2>Felicitaciones</h2>
+          <p style="margin:15px 0;">Has completado todas tus horas de labor social.</p>
+          <button class="btn btn-success" id="btnDownloadCert">Descargar Certificado</button>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- MODAL: Crear/Editar Estudiante -->
+  <!-- MODAL: Estudiante -->
   <div class="modal" id="studentModal" style="display:none;">
     <div class="modal-content">
       <div class="modal-header">
@@ -102,10 +217,14 @@
           <input type="text" id="studentName" placeholder="Nombre del estudiante" required>
         </div>
         <div class="form-group">
+          <label for="studentInst">Institución Educativa</label>
+          <input type="text" id="studentInst" placeholder="Nombre de la institución" required>
+        </div>
+        <div class="form-group" id="passGroup">
           <label for="studentPass">Contraseña</label>
           <input type="password" id="studentPass" placeholder="Contraseña (mínimo 4 caracteres)">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="hoursGroup">
           <label for="studentHours">Horas Totales del Programa</label>
           <input type="number" id="studentHours" value="480" min="1" step="1">
         </div>
@@ -118,7 +237,41 @@
     </div>
   </div>
 
-  <!-- MODAL: Actualizar Horas -->
+  <!-- MODAL: Coordinador -->
+  <div class="modal" id="coordModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="coordModalTitle">Nuevo Coordinador</h3>
+        <button class="modal-close" id="coordModalClose">&times;</button>
+      </div>
+      <form id="coordForm">
+        <input type="hidden" id="coordId">
+        <div class="form-group">
+          <label for="coordDoc">Documento</label>
+          <input type="text" id="coordDoc" placeholder="Número de documento" required>
+        </div>
+        <div class="form-group">
+          <label for="coordName">Nombre Completo</label>
+          <input type="text" id="coordName" placeholder="Nombre del coordinador" required>
+        </div>
+        <div class="form-group">
+          <label for="coordInst">Institución que representa</label>
+          <input type="text" id="coordInst" placeholder="Nombre de la institución" required>
+        </div>
+        <div class="form-group">
+          <label for="coordPass">Contraseña</label>
+          <input type="password" id="coordPass" placeholder="Contraseña (mínimo 4 caracteres)">
+        </div>
+        <div id="coordFormError" class="error-message" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="coordCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Horas -->
   <div class="modal" id="hoursModal" style="display:none;">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -132,7 +285,7 @@
         <p class="modal-info">Horas actuales: <strong id="hoursCurrent"></strong></p>
         <div class="form-group">
           <label for="hoursToAdd">Horas a agregar</label>
-          <input type="number" id="hoursToAdd" min="1" step="1" required placeholder="¿Cuántas horas vas a registrar?">
+          <input type="number" id="hoursToAdd" min="1" step="1" required placeholder="¿Cuántas horas?">
         </div>
         <div id="hoursError" class="error-message" style="display:none;"></div>
         <div class="modal-actions">
@@ -143,16 +296,52 @@
     </div>
   </div>
 
-  <!-- MODAL: Confirmar Eliminación -->
+  <!-- MODAL: Asistencia -->
+  <div class="modal" id="attendanceModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Registrar Asistencia</h3>
+        <button class="modal-close" id="attModalClose">&times;</button>
+      </div>
+      <form id="attendanceForm">
+        <div class="form-group">
+          <label for="attStudent">Estudiante</label>
+          <select id="attStudent" required>
+            <option value="">Seleccionar estudiante...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="attDate">Fecha</label>
+          <input type="date" id="attDate" required>
+        </div>
+        <div class="form-group">
+          <label for="attHours">Horas</label>
+          <input type="number" id="attHours" min="1" step="1" required placeholder="Horas asistidas">
+        </div>
+        <div class="form-group">
+          <label for="attObs">Observación (opcional)</label>
+          <input type="text" id="attObs" placeholder="Alguna nota...">
+        </div>
+        <div id="attError" class="error-message" style="display:none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="attCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Eliminar -->
   <div class="modal" id="deleteModal" style="display:none;">
     <div class="modal-content modal-sm">
       <div class="modal-header">
         <h3>Confirmar Eliminación</h3>
         <button class="modal-close" id="deleteModalClose">&times;</button>
       </div>
-      <p>¿Estás seguro de eliminar al estudiante <strong id="deleteStudentName"></strong>?</p>
+      <p>¿Estás seguro de eliminar <strong id="deleteItemName"></strong>?</p>
       <p class="text-muted">Esta acción no se puede deshacer.</p>
-      <input type="hidden" id="deleteStudentId">
+      <input type="hidden" id="deleteItemId">
+      <input type="hidden" id="deleteItemType">
       <div class="modal-actions">
         <button class="btn btn-outline" id="deleteCancel">Cancelar</button>
         <button class="btn btn-danger" id="deleteConfirm">Eliminar</button>

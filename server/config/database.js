@@ -78,12 +78,30 @@ async function initDatabase() {
       nombre TEXT NOT NULL,
       password TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'student',
+      institucion TEXT NOT NULL DEFAULT '',
       horas_completadas REAL NOT NULL DEFAULT 0,
       horas_totales REAL NOT NULL DEFAULT 480,
       created_at DATETIME DEFAULT (datetime('now','localtime')),
       updated_at DATETIME DEFAULT (datetime('now','localtime'))
     )
   `);
+
+  sqlDb.run(`
+    CREATE TABLE IF NOT EXISTS asistencia (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      estudiante_id INTEGER NOT NULL,
+      fecha DATE NOT NULL,
+      horas REAL NOT NULL DEFAULT 0,
+      observacion TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (estudiante_id) REFERENCES users(id)
+    )
+  `);
+
+  try {
+    sqlDb.run(`ALTER TABLE users ADD COLUMN institucion TEXT NOT NULL DEFAULT ''`);
+  } catch (e) {}
+
   saveDb();
 
   return { prepare, exec };
