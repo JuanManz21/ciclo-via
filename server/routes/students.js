@@ -139,14 +139,14 @@ router.put('/:id', requireRole('admin'), [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const student = db.prepare('SELECT * FROM users WHERE id = ? AND role = ?').get(Number(req.params.id), 'student');
-  if (!student) {
-    return res.status(404).json({ error: 'Estudiante no encontrado' });
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(Number(req.params.id));
+  if (!user) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
   const { nombre, documento, horas_totales, institucion } = req.body;
 
-  if (documento && documento !== student.documento) {
+  if (documento && documento !== user.documento) {
     const existing = db.prepare('SELECT id FROM users WHERE documento = ? AND id != ?').get(documento, Number(req.params.id));
     if (existing) {
       return res.status(409).json({ error: 'Ya existe otro registro con ese documento' });
@@ -156,10 +156,10 @@ router.put('/:id', requireRole('admin'), [
   db.prepare(
     'UPDATE users SET nombre = ?, documento = ?, horas_totales = ?, institucion = ?, updated_at = datetime("now","localtime") WHERE id = ?'
   ).run(
-    nombre || student.nombre,
-    documento || student.documento,
-    (horas_totales && Number.isInteger(horas_totales)) ? horas_totales : student.horas_totales,
-    institucion || student.institucion,
+    nombre || user.nombre,
+    documento || user.documento,
+    (horas_totales && Number.isInteger(horas_totales)) ? horas_totales : user.horas_totales,
+    institucion || user.institucion,
     Number(req.params.id)
   );
 
@@ -167,7 +167,7 @@ router.put('/:id', requireRole('admin'), [
     'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
   ).get(Number(req.params.id));
 
-  res.json({ message: 'Estudiante actualizado', student: updated });
+  res.json({ message: 'Usuario actualizado', user: updated });
 });
 
 router.put('/:id/horas', requireRole('admin'), [
@@ -206,15 +206,17 @@ router.put('/:id/horas', requireRole('admin'), [
 router.delete('/:id', requireRole('admin'), [
   param('id').isInt()
 ], (req, res) => {
-  const student = db.prepare('SELECT * FROM users WHERE id = ? AND role = ?').get(Number(req.params.id), 'student');
-  if (!student) {
-    return res.status(404).json({ error: 'Estudiante no encontrado' });
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(Number(req.params.id));
+  if (!user) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  db.prepare('DELETE FROM asistencia WHERE estudiante_id = ?').run(Number(req.params.id));
+  if (user.role === 'student') {
+    db.prepare('DELETE FROM asistencia WHERE estudiante_id = ?').run(Number(req.params.id));
+  }
   db.prepare('DELETE FROM users WHERE id = ?').run(Number(req.params.id));
 
-  res.json({ message: 'Estudiante eliminado exitosamente' });
+  res.json({ message: 'Usuario eliminado exitosamente' });
 });
 
 module.exports = router;

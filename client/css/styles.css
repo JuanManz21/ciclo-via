@@ -461,6 +461,7 @@ body {
   box-shadow: var(--shadow-md);
   z-index: 300;
   margin-top: 2px;
+  left: 0;
 }
 
 .search-results .result-item {
