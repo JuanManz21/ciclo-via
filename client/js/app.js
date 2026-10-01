@@ -152,7 +152,10 @@ function renderCoordinators(coords) {
   empty.style.display = 'none';
   tbody.innerHTML = coords.map(c => `<tr>
     <td>${c.documento}</td><td>${c.nombre}</td><td>${c.institucion}</td>
-    <td class="actions"><button class="btn btn-sm btn-danger" onclick="openDeleteModal(${c.id},'${esc(c.nombre)}','coordinator')">Eliminar</button></td></tr>`
+    <td class="actions">
+      <button class="btn btn-sm btn-outline" onclick="openCoordEditModal(${c.id},'${esc(c.documento)}','${esc(c.nombre)}','${esc(c.institucion||'')}')">Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${c.id},'${esc(c.nombre)}','coordinator')">Eliminar</button>
+    </td></tr>`
   ).join('');
 }
 
@@ -332,15 +335,21 @@ function openStudentModal(id, doc, nombre, inst, horas) {
   document.getElementById('studentModal').style.display = 'flex';
 }
 
-function openCoordModal() {
-  document.getElementById('coordModalTitle').textContent = 'Nuevo Coordinador';
-  document.getElementById('coordId').value = '';
-  document.getElementById('coordDoc').value = '';
-  document.getElementById('coordName').value = '';
-  document.getElementById('coordInst').value = '';
+function openCoordModal(id, doc, nombre, inst) {
+  document.getElementById('coordModalTitle').textContent = id ? 'Editar Coordinador' : 'Nuevo Coordinador';
+  document.getElementById('coordId').value = id || '';
+  document.getElementById('coordDoc').value = doc || '';
+  document.getElementById('coordDoc').disabled = !!id;
+  document.getElementById('coordName').value = nombre || '';
+  document.getElementById('coordInst').value = inst || '';
   document.getElementById('coordPass').value = '';
+  document.getElementById('coordPass').parentElement.style.display = id ? 'none' : 'block';
   document.getElementById('coordFormError').style.display = 'none';
   document.getElementById('coordModal').style.display = 'flex';
+}
+
+function openCoordEditModal(id, doc, nombre, inst) {
+  openCoordModal(id, doc, nombre, inst);
 }
 
 function openHoursModal(id, nombre, horasCompletadas, horasTotales) {
@@ -411,14 +420,19 @@ async function handleCoordSubmit(e) {
   const errDiv = document.getElementById('coordFormError');
   errDiv.style.display = 'none';
 
+  const id = document.getElementById('coordId').value;
   const documento = document.getElementById('coordDoc').value.trim();
   const nombre = document.getElementById('coordName').value.trim();
   const institucion = document.getElementById('coordInst').value.trim();
   const password = document.getElementById('coordPass').value;
 
   try {
-    if (!password || password.length < 4) throw new Error('La contraseña debe tener al menos 4 caracteres');
-    await apiRequest('/students/coordinator', { method: 'POST', body: { documento, nombre, password, institucion } });
+    if (id) {
+      await apiRequest(`/students/${id}`, { method: 'PUT', body: { documento, nombre, institucion } });
+    } else {
+      if (!password || password.length < 4) throw new Error('La contraseña debe tener al menos 4 caracteres');
+      await apiRequest('/students/coordinator', { method: 'POST', body: { documento, nombre, password, institucion } });
+    }
     document.getElementById('coordModal').style.display = 'none';
     loadCoordinators();
   } catch (err) { errDiv.textContent = err.message; errDiv.style.display = 'block'; }
