@@ -78,6 +78,31 @@ function setupSearch() {
       s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q)
     ));
   });
+
+  document.getElementById('attSearch')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const results = document.getElementById('attResults');
+    if (!q) { results.style.display = 'none'; return; }
+    const filtered = studentListForAtt.filter(s =>
+      s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q)
+    ).slice(0, 10);
+    if (!filtered.length) { results.style.display = 'none'; return; }
+    results.innerHTML = filtered.map(s => `<div class="result-item" onclick="selectStudentAtt(${s.id}, '${esc(s.nombre)} (${s.documento})')">${s.nombre} - ${s.documento} - ${s.institucion || ''}</div>`).join('');
+    results.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#attSearch') && !e.target.closest('#attResults')) {
+      document.getElementById('attResults').style.display = 'none';
+    }
+  });
+}
+
+function selectStudentAtt(id, label) {
+  document.getElementById('attStudent').value = id;
+  document.getElementById('attSelected').textContent = label;
+  document.getElementById('attResults').style.display = 'none';
+  document.getElementById('attSearch').value = '';
 }
 
 /* ===== ADMIN: STUDENTS ===== */
@@ -330,11 +355,10 @@ function openHoursModal(id, nombre, horasCompletadas, horasTotales) {
 }
 
 function openAttendanceModal() {
-  const sel = document.getElementById('attStudent');
-  sel.innerHTML = '<option value="">Seleccionar estudiante...</option>';
-  studentListForAtt.forEach(s => {
-    sel.innerHTML += `<option value="${s.id}">${s.nombre} (${s.documento}) - ${s.institucion || ''}</option>`;
-  });
+  document.getElementById('attSearch').value = '';
+  document.getElementById('attStudent').value = '';
+  document.getElementById('attSelected').textContent = '';
+  document.getElementById('attResults').style.display = 'none';
   document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('attHours').value = '';
   document.getElementById('attObs').value = '';
@@ -373,8 +397,12 @@ async function handleStudentSubmit(e) {
       await apiRequest('/students', { method: 'POST', body: { documento, nombre, password, horas_totales, institucion } });
     }
     document.getElementById('studentModal').style.display = 'none';
-    if (currentUser.role === 'admin') loadStudents();
-    else loadStudentsCoord();
+    if (currentUser.role === 'admin') {
+      await loadStudents();
+      await loadAttendance();
+    } else {
+      await loadStudentsCoord();
+    }
   } catch (err) { errDiv.textContent = err.message; errDiv.style.display = 'block'; }
 }
 

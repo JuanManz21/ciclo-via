@@ -302,11 +302,12 @@
       </div>
       <form id="attendanceForm">
         <div class="form-group">
-          <label for="attStudent">Estudiante</label>
-          <select id="attStudent" required>
-            <option value="">Seleccionar estudiante...</option>
-          </select>
+          <label for="attSearch">Buscar Estudiante</label>
+          <input type="text" id="attSearch" placeholder="Escriba el nombre o documento..." autocomplete="off">
+          <div id="attResults" class="search-results" style="display:none;"></div>
         </div>
+        <input type="hidden" id="attStudent" required>
+        <p class="modal-info">Estudiante seleccionado: <strong id="attSelected"></strong></p>
         <div class="form-group">
           <label for="attDate">Fecha</label>
           <input type="date" id="attDate" required>
