@@ -457,8 +457,12 @@ async function handleAttendanceSubmit(e) {
   try {
     await apiRequest('/attendance', { method: 'POST', body: { estudiante_id, fecha, horas, observacion } });
     document.getElementById('attendanceModal').style.display = 'none';
-    if (currentUser.role === 'admin') loadAttendance();
-    else loadAttendanceCoord();
+    if (currentUser.role === 'admin') {
+      await loadAttendance();
+      await loadStudents();
+    } else {
+      await loadAttendanceCoord();
+    }
   } catch (err) { errDiv.textContent = err.message; errDiv.style.display = 'block'; }
 }
 
