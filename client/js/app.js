@@ -96,6 +96,13 @@ function setupSearch() {
       document.getElementById('attResults').style.display = 'none';
     }
   });
+
+  document.getElementById('searchAttCoord')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    renderAttendance(allAttendance.filter(r =>
+      r.estudiante_nombre.toLowerCase().includes(q) || r.estudiante_documento.toLowerCase().includes(q)
+    ), 'attendanceBodyCoord', 'noAttendanceCoord', false);
+  });
 }
 
 function selectStudentAtt(id, label) {
