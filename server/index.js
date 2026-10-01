@@ -8,13 +8,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 function runSeed() {
+  // No eliminar datos existentes
+  // Solo asegurar que exista admin si no hay ninguno
   const adminDoc = '0000000';
-  const existing = prepare('SELECT id FROM users WHERE documento = ?').get(adminDoc);
-  if (!existing) {
+  const existingAdmin = prepare('SELECT id FROM users WHERE role = ?').get('admin');
+  if (!existingAdmin) {
     const hashed = bcrypt.hashSync('admin123', 10);
     prepare('INSERT INTO users (documento, nombre, password, role, institucion, horas_completadas, horas_totales) VALUES (?, ?, ?, ?, ?, ?, ?)').run(adminDoc, 'Administrador', hashed, 'admin', 'Sistema', 0, 0);
     console.log('Admin creado: 0000000 / admin123');
   }
+}
 }
 
 async function start() {
