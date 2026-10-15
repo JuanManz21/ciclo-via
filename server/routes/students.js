@@ -14,11 +14,11 @@ router.get('/', (req, res) => {
 
   if (req.user.role === 'coordinator') {
     students = db.prepare(
-      'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE role = ? AND institucion = ? ORDER BY nombre'
+      'SELECT id, documento, nombre, role, institucion, grado, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE role = ? AND institucion = ? ORDER BY nombre'
     ).all('student', req.user.institucion);
   } else {
     students = db.prepare(
-      'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE role = ? ORDER BY nombre'
+      'SELECT id, documento, nombre, role, institucion, grado, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE role = ? ORDER BY nombre'
     ).all('student');
   }
 
@@ -29,7 +29,7 @@ router.get('/:id', [
   param('id').isInt()
 ], (req, res) => {
   const student = db.prepare(
-    'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE id = ? AND role = ?'
+    'SELECT id, documento, nombre, role, institucion, grado, horas_completadas, horas_totales, created_at, updated_at FROM users WHERE id = ? AND role = ?'
   ).get(Number(req.params.id), 'student');
 
   if (!student) {
@@ -47,6 +47,7 @@ router.post('/', requireRole('admin'), [
   body('documento').notEmpty().withMessage('El documento es requerido'),
   body('nombre').notEmpty().withMessage('El nombre es requerido'),
   body('institucion').notEmpty().withMessage('La institución es requerida'),
+  body('grado').notEmpty().withMessage('El grado es requerido'),
   body('password').isLength({ min: 4 }).withMessage('La contraseña debe tener al menos 4 caracteres'),
   body('horas_totales').optional().isNumeric().withMessage('Las horas totales deben ser numéricas')
 ], (req, res) => {
@@ -55,7 +56,7 @@ router.post('/', requireRole('admin'), [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { documento, nombre, password, horas_totales, institucion } = req.body;
+  const { documento, nombre, password, horas_totales, institucion, grado } = req.body;
 
   const existing = db.prepare('SELECT id FROM users WHERE documento = ?').get(documento);
   if (existing) {
@@ -66,8 +67,8 @@ router.post('/', requireRole('admin'), [
   const horas = (horas_totales && Number.isInteger(horas_totales)) ? horas_totales : 480;
 
   const result = db.prepare(
-    'INSERT INTO users (documento, nombre, password, role, institucion, horas_totales) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(documento, nombre, hashedPassword, 'student', institucion, horas);
+    'INSERT INTO users (documento, nombre, password, role, institucion, grado, horas_totales) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(documento, nombre, hashedPassword, 'student', institucion, grado, horas);
 
   res.status(201).json({
     message: 'Estudiante creado exitosamente',
@@ -77,6 +78,7 @@ router.post('/', requireRole('admin'), [
       nombre,
       role: 'student',
       institucion,
+      grado,
       horas_completadas: 0,
       horas_totales: horas
     }
@@ -132,6 +134,7 @@ router.put('/:id', requireRole('admin'), [
   body('nombre').optional().notEmpty().withMessage('El nombre no puede estar vacío'),
   body('documento').optional().notEmpty().withMessage('El documento no puede estar vacío'),
   body('institucion').optional().notEmpty().withMessage('La institución no puede estar vacía'),
+  body('grado').optional().notEmpty().withMessage('El grado no puede estar vacío'),
   body('horas_totales').optional().isNumeric().withMessage('Las horas totales deben ser numéricas')
 ], (req, res) => {
   const errors = validationResult(req);
@@ -144,7 +147,7 @@ router.put('/:id', requireRole('admin'), [
     return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  const { nombre, documento, horas_totales, institucion } = req.body;
+  const { nombre, documento, horas_totales, institucion, grado } = req.body;
 
   if (documento && documento !== user.documento) {
     const existing = db.prepare('SELECT id FROM users WHERE documento = ? AND id != ?').get(documento, Number(req.params.id));
@@ -154,17 +157,18 @@ router.put('/:id', requireRole('admin'), [
   }
 
   db.prepare(
-    'UPDATE users SET nombre = ?, documento = ?, horas_totales = ?, institucion = ?, updated_at = datetime("now","localtime") WHERE id = ?'
+    'UPDATE users SET nombre = ?, documento = ?, horas_totales = ?, institucion = ?, grado = ?, updated_at = datetime("now","localtime") WHERE id = ?'
   ).run(
     nombre || user.nombre,
     documento || user.documento,
     (horas_totales && Number.isInteger(horas_totales)) ? horas_totales : user.horas_totales,
     institucion || user.institucion,
+    grado !== undefined ? grado : user.grado,
     Number(req.params.id)
   );
 
   const updated = db.prepare(
-    'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
+    'SELECT id, documento, nombre, role, institucion, grado, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
   ).get(Number(req.params.id));
 
   res.json({ message: 'Usuario actualizado', user: updated });
@@ -197,7 +201,7 @@ router.put('/:id/horas', requireRole('admin'), [
   ).run(horas_completadas, Number(req.params.id));
 
   const updated = db.prepare(
-    'SELECT id, documento, nombre, role, institucion, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
+    'SELECT id, documento, nombre, role, institucion, grado, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
   ).get(Number(req.params.id));
 
   res.json({ message: 'Horas actualizadas', student: updated });

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', authenticate, requireRole('student'), (req, res) => {
   const user = db.prepare(
-    'SELECT id, documento, nombre, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
+    'SELECT id, documento, nombre, institucion, grado, horas_completadas, horas_totales, updated_at FROM users WHERE id = ?'
   ).get(req.user.id);
 
   if (!user) {
@@ -35,6 +35,8 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
     id: user.id,
     documento: user.documento,
     nombre: user.nombre,
+    institucion: user.institucion,
+    grado: user.grado,
     horas_completadas: user.horas_completadas,
     horas_totales: user.horas_totales,
     horas_faltantes,

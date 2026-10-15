@@ -69,13 +69,13 @@ function setupSearch() {
   document.getElementById('searchInput')?.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
     renderStudents(allStudents.filter(s =>
-      s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q) || (s.institucion || '').toLowerCase().includes(q)
+      s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q) || (s.institucion || '').toLowerCase().includes(q) || (s.grado || '').toLowerCase().includes(q)
     ));
   });
   document.getElementById('searchInputCoord')?.addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
     renderStudentsCoord(allStudents.filter(s =>
-      s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q)
+      s.documento.toLowerCase().includes(q) || s.nombre.toLowerCase().includes(q) || (s.grado || '').toLowerCase().includes(q)
     ));
   });
 
@@ -103,6 +103,47 @@ function setupSearch() {
       r.estudiante_nombre.toLowerCase().includes(q) || r.estudiante_documento.toLowerCase().includes(q)
     ), 'attendanceBodyCoord', 'noAttendanceCoord', false);
   });
+
+  document.getElementById('searchAttAdmin')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    renderAttendance(allAttendance.filter(r =>
+      r.estudiante_nombre.toLowerCase().includes(q) || r.estudiante_documento.toLowerCase().includes(q) || (r.institucion || '').toLowerCase().includes(q) || (r.grado || '').toLowerCase().includes(q)
+    ), 'attendanceBody', 'noAttendance', true);
+  });
+
+  document.getElementById('btnExportAttendance')?.addEventListener('click', () => exportAttendance(false));
+  document.getElementById('btnExportAttendanceCoord')?.addEventListener('click', () => exportAttendance(true));
+}
+
+async function exportAttendance(isCoord) {
+  try {
+    const token = localStorage.getItem('token');
+    let url = '/api/attendance/export';
+    const params = new URLSearchParams();
+    if (!isCoord) {
+      const fi = document.getElementById('filterDateStart')?.value;
+      const ff = document.getElementById('filterDateEnd')?.value;
+      const q = document.getElementById('searchAttAdmin')?.value;
+      if (fi) params.append('fecha_inicio', fi);
+      if (ff) params.append('fecha_fin', ff);
+      if (q) params.append('q', q);
+    } else {
+      const q = document.getElementById('searchAttCoord')?.value;
+      if (q) params.append('q', q);
+    }
+    if (params.toString()) url += '?' + params.toString();
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!resp.ok) throw new Error('Error al exportar');
+    const blob = await resp.blob();
+    const a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = 'asistencia.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    alert('Error al exportar asistencia');
+  }
 }
 
 function selectStudentAtt(id, label) {
@@ -130,12 +171,12 @@ function renderStudents(students) {
     const f = Math.max(0, s.horas_totales - s.horas_completadas);
     const p = s.horas_totales > 0 ? Math.round((s.horas_completadas / s.horas_totales) * 100) : 0;
     return `<tr>
-      <td>${s.documento}</td><td>${s.nombre}</td><td>${s.institucion || '-'}</td>
+      <td>${s.documento}</td><td>${s.nombre}</td><td>${s.institucion || '-'}</td><td>${s.grado || '-'}</td>
       <td>${s.horas_completadas}h</td><td>${f}h</td>
       <td><div class="progress-bar" style="height:8px;min-width:80px;"><div class="progress-fill" style="width:${p}%"></div></div><span style="font-size:12px;">${p}%</span></td>
       <td class="actions">
         <button class="btn btn-sm btn-primary" onclick="openHoursModal(${s.id},'${esc(s.nombre)}',${s.horas_completadas},${s.horas_totales})">Horas</button>
-        <button class="btn btn-sm btn-outline" onclick="openEditModal(${s.id},'${esc(s.documento)}','${esc(s.nombre)}','${esc(s.institucion||'')}',${s.horas_totales})">Editar</button>
+        <button class="btn btn-sm btn-outline" onclick="openEditModal(${s.id},'${esc(s.documento)}','${esc(s.nombre)}','${esc(s.institucion||'')}','${esc(s.grado||'')}',${s.horas_totales})">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="openDeleteModal(${s.id},'${esc(s.nombre)}','student')">Eliminar</button>
       </td></tr>`;
   }).join('');
@@ -194,6 +235,7 @@ function renderAttendance(records, tbodyId, emptyId, showDelete) {
   tbody.innerHTML = records.map(r => `<tr>
     <td>${r.fecha}</td><td>${r.estudiante_nombre}</td><td>${r.estudiante_documento}</td>
     ${showDelete ? `<td>${r.institucion || '-'}</td>` : ''}
+    <td>${r.grado || '-'}</td>
     <td>${r.horas}h</td><td>${r.observacion || '-'}</td>
     ${showDelete ? `<td><button class="btn btn-sm btn-danger" onclick="deleteAttendance(${r.id})">Eliminar</button></td>` : ''}
   </tr>`).join('');
@@ -237,7 +279,7 @@ function renderStudentsCoord(students) {
     const f = Math.max(0, s.horas_totales - s.horas_completadas);
     const p = s.horas_totales > 0 ? Math.round((s.horas_completadas / s.horas_totales) * 100) : 0;
     return `<tr>
-      <td>${s.documento}</td><td>${s.nombre}</td>
+      <td>${s.documento}</td><td>${s.nombre}</td><td>${s.grado || '-'}</td>
       <td>${s.horas_completadas}h</td><td>${f}h</td>
       <td><div class="progress-bar" style="height:8px;min-width:80px;"><div class="progress-fill" style="width:${p}%"></div></div><span style="font-size:12px;">${p}%</span></td>
     </tr>`;
@@ -326,13 +368,14 @@ function setupModals() {
   document.getElementById('filterDateEnd')?.addEventListener('change', () => {});
 }
 
-function openStudentModal(id, doc, nombre, inst, horas) {
+function openStudentModal(id, doc, nombre, inst, grado, horas) {
   document.getElementById('modalTitle').textContent = id ? 'Editar Estudiante' : 'Nuevo Estudiante';
   document.getElementById('studentId').value = id || '';
   document.getElementById('studentDoc').value = doc || '';
   document.getElementById('studentDoc').disabled = !!id;
   document.getElementById('studentName').value = nombre || '';
   document.getElementById('studentInst').value = inst || (currentUser.institucion && currentUser.role === 'coordinator' ? currentUser.institucion : '');
+  document.getElementById('studentGrado').value = grado || '';
   document.getElementById('studentPass').value = '';
   document.getElementById('studentHours').value = horas || 480;
   document.getElementById('passGroup').style.display = id ? 'none' : 'block';
@@ -382,8 +425,8 @@ function openAttendanceModal() {
   document.getElementById('attendanceModal').style.display = 'flex';
 }
 
-function openEditModal(id, doc, nombre, inst, horas) {
-  openStudentModal(id, doc, nombre, inst, horas);
+function openEditModal(id, doc, nombre, inst, grado, horas) {
+  openStudentModal(id, doc, nombre, inst, grado, horas);
 }
 
 function openDeleteModal(id, name, type) {
@@ -402,15 +445,16 @@ async function handleStudentSubmit(e) {
   const documento = document.getElementById('studentDoc').value.trim();
   const nombre = document.getElementById('studentName').value.trim();
   const institucion = document.getElementById('studentInst').value.trim();
+  const grado = document.getElementById('studentGrado').value.trim();
   const password = document.getElementById('studentPass').value;
   const horas_totales = parseInt(document.getElementById('studentHours').value) || 480;
 
   try {
     if (id) {
-      await apiRequest(`/students/${id}`, { method: 'PUT', body: { documento, nombre, institucion, horas_totales } });
+      await apiRequest(`/students/${id}`, { method: 'PUT', body: { documento, nombre, institucion, grado, horas_totales } });
     } else {
       if (!password || password.length < 4) throw new Error('La contraseña debe tener al menos 4 caracteres');
-      await apiRequest('/students', { method: 'POST', body: { documento, nombre, password, horas_totales, institucion } });
+      await apiRequest('/students', { method: 'POST', body: { documento, nombre, password, horas_totales, institucion, grado } });
     }
     document.getElementById('studentModal').style.display = 'none';
     if (currentUser.role === 'admin') {

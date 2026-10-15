@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ciclo Vía - Panel</title>
+  <title>Vía Recreativa y Cultural Manrique - Panel</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand">Ciclo Vía</div>
+    <div class="nav-brand">Vía Recreativa y Cultural Manrique</div>
     <div class="nav-user">
       <span id="navUserName"></span>
       <span id="navUserRole" class="badge"></span>
@@ -33,7 +33,7 @@
           <button class="btn btn-primary" id="btnNewStudent">+ Nuevo Estudiante</button>
         </div>
         <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="Buscar por documento, nombre o institución...">
+          <input type="text" id="searchInput" placeholder="Buscar por documento, nombre, institución o grado...">
         </div>
         <div class="table-responsive">
           <table class="table">
@@ -42,6 +42,7 @@
                 <th>Documento</th>
                 <th>Nombre</th>
                 <th>Institución</th>
+                <th>Grado</th>
                 <th>Horas</th>
                 <th>Faltantes</th>
                 <th>Progreso</th>
@@ -78,7 +79,13 @@
       <div id="tab-attendance" class="tab-content" style="display:none;">
         <div class="section-header">
           <h2>Registro de Asistencia</h2>
-          <button class="btn btn-primary" id="btnNewAttendance">+ Registrar Asistencia</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" id="btnExportAttendance">Exportar a Excel</button>
+            <button class="btn btn-primary" id="btnNewAttendance">+ Registrar Asistencia</button>
+          </div>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="searchAttAdmin" placeholder="Buscar estudiante por nombre o documento..." style="flex:1;">
         </div>
         <div class="search-bar">
           <input type="date" id="filterDateStart" placeholder="Fecha inicio">
@@ -93,6 +100,7 @@
                 <th>Estudiante</th>
                 <th>Documento</th>
                 <th>Institución</th>
+                <th>Grado</th>
                 <th>Horas</th>
                 <th>Observación</th>
                 <th>Acciones</th>
@@ -117,7 +125,7 @@
           <h2>Estudiantes de mi Institución</h2>
         </div>
         <div class="search-bar">
-          <input type="text" id="searchInputCoord" placeholder="Buscar por documento o nombre...">
+          <input type="text" id="searchInputCoord" placeholder="Buscar por documento, nombre o grado...">
         </div>
         <div class="table-responsive">
           <table class="table">
@@ -125,6 +133,7 @@
               <tr>
                 <th>Documento</th>
                 <th>Nombre</th>
+                <th>Grado</th>
                 <th>Horas</th>
                 <th>Faltantes</th>
                 <th>Progreso</th>
@@ -139,6 +148,7 @@
       <div id="tab-c-attendance" class="tab-content" style="display:none;">
         <div class="section-header">
           <h2>Asistencia</h2>
+          <button class="btn btn-outline" id="btnExportAttendanceCoord">Exportar a Excel</button>
         </div>
         <div class="search-bar">
           <input type="text" id="searchAttCoord" placeholder="Buscar por nombre o documento...">
@@ -150,6 +160,7 @@
                 <th>Fecha</th>
                 <th>Estudiante</th>
                 <th>Documento</th>
+                <th>Grado</th>
                 <th>Horas</th>
                 <th>Observación</th>
               </tr>
@@ -219,6 +230,10 @@
         <div class="form-group">
           <label for="studentInst">Institución Educativa</label>
           <input type="text" id="studentInst" placeholder="Nombre de la institución" required>
+        </div>
+        <div class="form-group">
+          <label for="studentGrado">Grado (ej: 10-1, 11-1)</label>
+          <input type="text" id="studentGrado" placeholder="Grado del estudiante" required>
         </div>
         <div class="form-group" id="passGroup">
           <label for="studentPass">Contraseña</label>

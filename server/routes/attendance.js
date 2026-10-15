@@ -9,10 +9,10 @@ const router = express.Router();
 router.use(authenticate, requireRole('admin', 'coordinator'));
 
 router.get('/', (req, res) => {
-  const { estudiante_id, fecha_inicio, fecha_fin } = req.query;
+  const { estudiante_id, fecha_inicio, fecha_fin, q } = req.query;
 
   let sql = `
-    SELECT a.*, u.nombre as estudiante_nombre, u.documento as estudiante_documento, u.institucion
+    SELECT a.*, u.nombre as estudiante_nombre, u.documento as estudiante_documento, u.institucion, u.grado
     FROM asistencia a
     JOIN users u ON a.estudiante_id = u.id
     WHERE u.role = 'student'
@@ -36,11 +36,62 @@ router.get('/', (req, res) => {
     sql += ` AND a.fecha <= ?`;
     params.push(fecha_fin);
   }
+  if (q) {
+    sql += ` AND (LOWER(u.nombre) LIKE ? OR u.documento LIKE ?)`;
+    params.push(`%${String(q).toLowerCase()}%`, `%${q}%`);
+  }
 
   sql += ` ORDER BY a.fecha DESC, u.nombre ASC`;
 
   const records = db.prepare(sql).all(...params);
   res.json(records);
+});
+
+router.get('/export', (req, res) => {
+  const { fecha_inicio, fecha_fin, q } = req.query;
+
+  let sql = `
+    SELECT a.fecha, u.nombre as estudiante_nombre, u.documento as estudiante_documento, u.institucion, u.grado, a.horas, a.observacion,
+           u.horas_completadas, u.horas_totales
+    FROM asistencia a
+    JOIN users u ON a.estudiante_id = u.id
+    WHERE u.role = 'student'
+  `;
+  const params = [];
+
+  if (req.user.role === 'coordinator') {
+    sql += ` AND u.institucion = ?`;
+    params.push(req.user.institucion);
+  }
+  if (fecha_inicio) {
+    sql += ` AND a.fecha >= ?`;
+    params.push(fecha_inicio);
+  }
+  if (fecha_fin) {
+    sql += ` AND a.fecha <= ?`;
+    params.push(fecha_fin);
+  }
+  if (q) {
+    sql += ` AND (LOWER(u.nombre) LIKE ? OR u.documento LIKE ?)`;
+    params.push(`%${String(q).toLowerCase()}%`, `%${q}%`);
+  }
+
+  sql += ` ORDER BY a.fecha DESC, u.nombre ASC`;
+
+  const records = db.prepare(sql).all(...params);
+
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const header = ['Fecha','Estudiante','Documento','Institucion','Grado','Horas','Observacion','Horas acumuladas','Horas totales'].map(esc).join(',');
+  const lines = records.map(r => [
+    r.fecha, r.estudiante_nombre, r.estudiante_documento, r.institucion, r.grado || '',
+    r.horas, r.observacion || '', r.horas_completadas, r.horas_totales
+  ].map(esc).join(','));
+
+  const csv = '﻿' + [header, ...lines].join('\r\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename=asistencia.csv');
+  res.send(csv);
 });
 
 router.post('/', requireRole('admin'), [

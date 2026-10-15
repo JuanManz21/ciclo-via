@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/', authenticate, requireRole('student'), (req, res) => {
   const user = db.prepare(
-    'SELECT id, documento, nombre, institucion, horas_completadas, horas_totales FROM users WHERE id = ?'
+    'SELECT id, documento, nombre, institucion, grado, horas_completadas, horas_totales FROM users WHERE id = ?'
   ).get(req.user.id);
 
   if (!user) {
@@ -32,7 +32,7 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
 
   doc.rect(36, 36, doc.page.width - 72, doc.page.height - 72).lineWidth(1).stroke('#c0a050');
 
-  doc.fontSize(14).fillColor('#666').font('Helvetica').text('CICLO VÍA', 0, 60, { align: 'center' });
+  doc.fontSize(14).fillColor('#666').font('Helvetica').text('VÍA RECREATIVA Y CULTURAL MANRIQUE', 0, 60, { align: 'center' });
 
   doc.moveDown(1.5);
   doc.fontSize(32).fillColor('#1a1a6c').font('Helvetica-Bold').text('CERTIFICADO', { align: 'center' });
@@ -54,6 +54,11 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
     doc.text(`Institución Educativa: ${user.institucion}`, { align: 'center' });
   }
 
+  if (user.grado) {
+    doc.moveDown(0.3);
+    doc.text(`Grado: ${user.grado}`, { align: 'center' });
+  }
+
   doc.moveDown(1);
   doc.fontSize(14).fillColor('#333').font('Helvetica').text(
     `Ha completado exitosamente ${user.horas_completadas} horas de labor social`, { align: 'center' }
@@ -61,7 +66,7 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
 
   doc.moveDown(1.5);
   doc.fontSize(11).fillColor('#666').text(
-    `Este certificado es válido como constancia de participación en el programa Ciclo Vía.`, { align: 'center' }
+    `Este certificado es válido como constancia de participación en el programa Vía Recreativa y Cultural Manrique.`, { align: 'center' }
   );
 
   const hoy = new Date();
@@ -71,7 +76,7 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
   doc.fontSize(12).fillColor('#333').font('Helvetica');
   doc.text('_______________________________', doc.page.width / 2 - 120, doc.page.y, { align: 'center', width: 240 });
   doc.moveDown(0.3);
-  doc.text('Administrador Ciclo Vía', { align: 'center' });
+  doc.text('Administrador Vía Recreativa y Cultural Manrique', { align: 'center' });
   doc.moveDown(0.3);
   doc.text(fechaStr, { align: 'center' });
 

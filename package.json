@@ -1,7 +1,7 @@
 {
-  "name": "ciclo-via",
+  "name": "via-recreativa-manrique",
   "version": "1.0.0",
-  "description": "Sistema de gestión de horas de alfabetización",
+  "description": "Sistema de gestión de horas de alfabetización - Vía Recreativa y Cultural Manrique",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

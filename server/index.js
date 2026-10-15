@@ -18,7 +18,6 @@ function runSeed() {
     console.log('Admin creado: 0000000 / admin123');
   }
 }
-}
 
 async function start() {
   await initDatabase();
@@ -47,7 +46,7 @@ async function start() {
   });
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor Ciclo Vía corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor Vía Recreativa y Cultural Manrique corriendo en http://localhost:${PORT}`);
   });
 }
 
