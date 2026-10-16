@@ -57,22 +57,21 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
   const RIGHT = W - 55;
   const WIDTH = RIGHT - LEFT;
 
-  // Logo (si existe client/img/logo.png) + encabezado corporación
+  // Logo arriba a la izquierda (el logo ya incluye el nombre de la corporación)
+  // Alto proporcional: el logo mide 2622x2068 (~1.27:1)
   const logoPath = path.join(__dirname, '..', '..', 'client', 'img', 'logo.png');
-  let cursorY = 40;
+  const firmaPath = path.join(__dirname, '..', '..', 'client', 'img', 'firma.png');
+  const logoW = 150;
+  const logoH = Math.round(logoW * (2068 / 2622));
+  const headerTop = 35;
   try {
     if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, LEFT, cursorY, { width: 130 });
+      doc.image(logoPath, LEFT, headerTop, { width: logoW });
     }
   } catch (e) {}
 
-  doc.fillColor('#000000').font('Helvetica').fontSize(10);
-  doc.text('Corporación Juvenil', LEFT, cursorY + 2, { width: WIDTH });
-  doc.font('Helvetica-Bold').fontSize(20).text('LA COMUNA', LEFT, cursorY + 15, { width: WIDTH });
-  doc.font('Helvetica').fontSize(7).fillColor('#333333');
-  doc.text('INSTITUCIÓN SIN ÁNIMO DE LUCRO AL SERVICIO DE LA COMUNIDAD DESDE 1973', LEFT, cursorY + 40, { width: 260 });
-
-  cursorY = 130;
+  // El cuerpo empieza debajo del logo con margen
+  const bodyTop = headerTop + logoH + 25;
 
   const par = (text, opts = {}) => {
     doc.font('Helvetica').fontSize(11).fillColor('#000000');
@@ -88,7 +87,7 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
     doc.moveDown(0.8);
   };
 
-  doc.y = cursorY;
+  doc.y = bodyTop;
 
   // Fecha generación (dinámica)
   doc.font('Helvetica').fontSize(11);
@@ -114,9 +113,21 @@ router.get('/', authenticate, requireRole('student'), (req, res) => {
   }]);
 
   par('Atentamente,');
-  doc.moveDown(2);
+  doc.moveDown(0.5);
 
-  doc.font('Helvetica').fontSize(11);
+  // Firma y sello (si existe client/img/firma.png se muestra sobre la línea)
+  try {
+    if (fs.existsSync(firmaPath)) {
+      doc.image(firmaPath, LEFT, doc.y, { width: 160 });
+      doc.y += 85;
+    } else {
+      doc.moveDown(2);
+    }
+  } catch (e) {
+    doc.moveDown(2);
+  }
+
+  doc.font('Helvetica').fontSize(11).fillColor('#000000');
   doc.text('_______________________________', LEFT, doc.y, { width: WIDTH, align: 'left' });
   doc.moveDown(0.3);
   doc.font('Helvetica-Bold').text('Luis Carlos Molina Restrepo', LEFT, doc.y, { width: WIDTH, align: 'left' });
